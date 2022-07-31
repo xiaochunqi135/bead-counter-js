@@ -1,239 +1,218 @@
-const beadSize = 32,
-  beadStroke = "rgba(0,0,0,.25)",
-  beadFill =
-    "radial-gradient(ellipse farthest-corner at 25px 10px, rgba(200,0,9,1),rgba(100,0,9,1))",
-  rodStroke = "#333",
-  rodThickness = 5,
-  rodFill = "grey",
-  frameFill = "rgb(82, 82, 82)",
-  frameStroke = "#88603f",
-  frameThickness = 8,
-  width = 400,
-  height = 480;
-  var $bc;
-function initMain() {
-  let s =
-    '<div id="bc" style="position:relative; width:400px; height:600px; margin:auto; display:block;"></div>';
-  document.write(s);
-  createHTML();
-  $bc = new BeadCounter();
+let wrapper = document.getElementById("bc");
+function states(n) {
+  const states = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+    [0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  ];
+  return states[n];
 }
-function createDiv(style) {
+function create_html_div(style) {
   let e = document.createElement("div");
   for (let s in style) {
     e.style[s] = style[s];
   }
   return e;
 }
-function createHTML() {
-  var $bcWrapper = document.getElementById("bc");
-  var $bcBorder = createDiv({
-    width: width + frameThickness * 2 + "px",
-    borderRadius: "6px",
-    border: "8px outset " + frameStroke,
-    background: frameStroke,
-  });
-  var $bcContainer = createDiv({
-    border: frameThickness + "px inset " + frameStroke,
-    background: frameFill,
-    background: "linear-gradient(to top left,rgb(88, 66, 46),rgb(113, 79, 51))",
-    display: "flex",
-    borderRadius: "5px",
-    position: "relative",
-    width: width + "px",
-  });
-  var $bcDivider = createDiv({
-    position: "absolute",
-    top: height / 3 + "px",
-    left: 0 + "px",
-    width: width - 2 + "px",
-    height: frameThickness + "px",
-    border: "1px solid rgba(0,0,0,.25)",
-    background: frameStroke,
-    boxShadow: "0px 5px 10px rgba(0,0,0,.25)",
-  });
-  for (let i = 0; i < 5; i++) {
-    $bcContainer.appendChild(createColumnHTML(i));
-  }
-  $bcContainer.appendChild($bcDivider);
-  $bcBorder.appendChild($bcContainer);
-  $bcWrapper.appendChild($bcBorder);
-  $bcWrapper.appendChild(createInputHTML());
-}
-function createInputHTML() {
-  var $textContainer = createDiv({ margin: "auto", padding: "10px" });
-  let e = document.createElement("input");
-  e.oninput = function () {
-    $bc.setValue(Number(e.value));
-    refresh();
-  };
-  e.id = "bc-readout";
-  e.style.fontSize = "28px";
-  e.style.textAlign = "center";
-  e.style.width = width + frameThickness * 2;
-  e.style.borderRadius = "3px";
-  e.style.background = "#eee";
-  $textContainer.appendChild(e);
-  return $textContainer;
-}
-function createBeadHTML(col, row) {
-  var $bead = createDiv({
-    background: beadFill,
-    borderRadius: "43%",
-    border: "1px solid " + beadStroke,
-    width: beadSize + "px",
-    height: beadSize / 2 + "px",
-    transition: "all .5s",
-    boxShadow: "rgba(0,0,0,.2) -5px 5px 8px",
-    cursor: "pointer",
-  });
-  $bead.id = "bead-" + col + "-" + row;
-  $bead.onclick = function () {
-    $bc.toggleBead(col, row);
-    document.getElementById("bc-readout").value = $bc.getValue();
-    refresh();
-  };
-  return $bead;
-}
-function createColumnHTML(idx) {
-  var $col = createDiv({
-    height: height + "px",
-    border: "",
-    position: "relative",
-    flex: 1,
-  });
-  var $bar = createDiv({
-    width: rodThickness + "px",
-    height: height - 2 + "px",
-    background: rodFill,
-    border: "1px solid " + rodStroke,
-    position: "absolute",
-    left: "50%",
-    transform: "translateX(-50%)",
-    boxShadow: "-5px 0px 10px rgba(0,0,0,.25)",
-  });
-  var $top = createDiv({
-    position: "absolute",
-    top: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-  });
-  var $bottom = createDiv({
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-  });
-  for (let i = 0; i < 7; i++) {
-    let b = createBeadHTML(idx, i);
-    if (i < 2) { $top.appendChild(b) }
-    else { $bottom.appendChild(b) };
-  }
-  $col.appendChild($bar);
-  $col.appendChild($top);
-  $col.appendChild($bottom);
-  return $col;
-}
-function refresh() {
-  for (var col = 0; col < $bc.columns.length; col++) {
-    if (!$bc.columns[col]) {
-      console.log("ERROR. COlumn does not exist");
-      return;
-    }
-    for (var row = 0; row < $bc.columns[col].length; row++) {
-      var $bead = document.getElementById("bead-" + col + "-" + row);
-      var $toggled = $bc.columns[col][row];
-      if (row < 2) {
-        $bead.style.transform = $toggled ? "translateY(34px)" : "translateY(0px)";
-      } else {
-        $bead.style.transform = $toggled
-          ? "translateY(-41px)"
-          : "translateY(0px)";
-      }
-    }
-  }
-}
 class BeadCounter {
-  constructor() {
-    function getDisplayStates(n) {
-      var states = [
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0],
-        [0, 0, 1, 1, 0, 0, 0],
-        [0, 0, 1, 1, 1, 0, 0],
-        [0, 0, 1, 1, 1, 1, 0],
-        [0, 1, 0, 0, 0, 0, 0],
-        [0, 1, 1, 0, 0, 0, 0],
-        [0, 1, 1, 1, 0, 0, 0],
-        [0, 1, 1, 1, 1, 0, 0],
-        [0, 1, 1, 1, 1, 1, 0],
-        [1, 1, 0, 0, 0, 0, 0],
-        [1, 1, 1, 0, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0, 0],
-        [1, 1, 1, 1, 1, 0, 0],
-        [1, 1, 1, 1, 1, 1, 0],
-        [1, 1, 1, 1, 1, 1, 1],
-      ];
-      return states[n];
+  constructor(n) {
+    if (n > 9 || n < 1) {
+      n = 9;
     }
+    let texts = [
+      "亿位",
+      "千万位",
+      "百万位",
+      "十万位",
+      "万位",
+      "千位",
+      "百位",
+      "十位",
+      "个位",
+    ];
+    this.texts = [];
+    for (let i = 0; i < n; i++) {
+      this.texts.push(texts.pop());
+    }
+    this.swidth = 600 / n + 10;
+    wrapper.style = "margin: auto; width: 700px;";
+    let container = create_html_div({
+      "column-count": n,
+      width: "600px",
+      height: "550px",
+    });
     this.columns = [];
-    for (var i = 0; i < 5; i++) {
-      this.columns.push([0, 0, 0, 0, 0, 0, 0]);
+    for (let i = 0; i < n; i++) {
+      this.columns.push(states(0));
+      let c = this.create_column(i);
+      container.appendChild(c);
     }
-    function colVal(arr) {
-      var sum = 0;
-      for (var i = 0; i < arr.length; i++) {
-        if (arr[i] == false)
-          continue;
-        if (i < 2)
-          sum += 5;
-        else
-          sum += 1;
-      }
-      return sum;
-    }
-    this.getValue = function () {
-      var sum = 0;
-      for (var i = 0; i < this.columns.length; i++) {
-        var place = Math.pow(10, this.columns.length - i - 1);
-        sum += colVal(this.columns[i]) * place;
-      }
-      return sum;
+    let box = create_html_div({
+      margin: "auto",
+      padding: "10px",
+      width: "520px",
+    });
+    let input_box = document.createElement("input");
+    input_box.oninput = () => {
+      this.set_value(Number(input_box.value));
+      this.refresh();
     };
-    this.setValue = function (n) {
-      var sum = n;
-      for (var i = 0; i < this.columns.length; i++) {
-        var m = Math.pow(10, this.columns.length - i - 1);
-        this.columns[i] = getDisplayStates(0);
-        if (sum < m) {
-          continue;
+    input_box.id = "bc-readout";
+    input_box.style.fontSize = "28px";
+    input_box.style.textAlign = "center";
+    input_box.style.width = 500;
+    input_box.style.borderRadius = "3px";
+    input_box.style.background = "#eeeeee";
+    box.appendChild(input_box);
+    let container_bottom = create_html_div({
+      width: "600px",
+      position: "relative",
+      top: "-50px",
+      height: "25px",
+      background: "grey",
+      border: "1px solid #333333",
+      boxShadow: "-5px 0px 10px rgba(0,0,0,0.25)",
+    });
+    wrapper.appendChild(container);
+    wrapper.appendChild(container_bottom);
+    wrapper.appendChild(box);
+    for (let i = 0; i < n; i++) {
+      let tag = document.createElement("p");
+      tag.style = "margin: auto; text-align: center;";
+      let text = document.createTextNode(this.texts.pop());
+      tag.appendChild(text);
+      let element_id = "text-" + i;
+      let element = document.getElementById(element_id);
+      element.appendChild(tag);
+    }
+  }
+  get_value() {
+    let $sum = 0;
+    for (let i = 0; i < this.columns.length; i++) {
+      $sum +=
+        this.columns[i].reduce((partialSum, a) => partialSum + a, 0) *
+        Math.pow(10, this.columns.length - i - 1);
+    }
+    return $sum;
+  }
+  set_value(n) {
+    let $max = 0;
+    for (let i = 0; i < this.columns.length; i++) {
+      $max += Math.pow(10, this.columns.length - i);
+    }
+    let $sum;
+    if (n > 0) {
+      if (n > $max) {
+        $sum = $max;
+      } else {
+        $sum = n;
+      }
+    } else {
+      $sum = 0;
+    }
+    for (let i = 0; i < this.columns.length; i++) {
+      this.columns[i] = states(0);
+      let m = Math.pow(10, this.columns.length - i - 1);
+      if ($sum < m) {
+        continue;
+      } else {
+        let r = $sum % m;
+        this.columns[i] = states(($sum - r) / m);
+        $sum = r;
+      }
+    }
+  }
+  toggle(col, row) {
+    let x = col - 1;
+    let y = row - 1;
+    let v = this.columns[x][y];
+    if (v == 1) {
+      for (let i = 0; i < row; i++) {
+        this.columns[x][i] = 0;
+      }
+    } else {
+      for (let i = y; i < 10; i++) {
+        this.columns[x][i] = 1;
+      }
+    }
+  }
+  refresh() {
+    for (let x = 0; x < this.columns.length; x++) {
+      for (let y = 0; y < 10; y++) {
+        let col = x + 1;
+        let row = y + 1;
+        let bead = document.getElementById("bead-" + col + "-" + row);
+        if (this.columns[x][y] == 1) {
+          bead.style.transform = "translateY(320px)";
         } else {
-          var remainder = sum % m;
-          this.columns[i] = getDisplayStates((sum - remainder) / m);
-          sum = remainder;
+          bead.style.transform = "translateY(0px)";
         }
       }
-      if (sum != 0) {
-        console.log("Error: Number too large to display");
-      }
-    };
-    this.toggleBead = function (col, row) {
-      var arr = this.columns[col];
-      var toggled = !arr[row];
-      arr[row] = toggled;
-      if (row == 0 && toggled) {
-        arr[1] = true;
-      } else if (row == 1 && !toggled) {
-        arr[0] = false;
-      } else if (row > 1 && !toggled) {
-        for (var i = arr.length - 1; i > row; i--) {
-          arr[i] = false;
-        }
-      } else if (row > 1 && toggled) {
-        for (var i = row; i > 1; i--) {
-          arr[i] = true;
-        }
-      }
-    };
+    }
+  }
+  create_column(x) {
+    let column_div = create_html_div({
+      height: "550px",
+    });
+    let column_bar = create_html_div({
+      width: "5px",
+      height: "500px",
+      background: "grey",
+      border: "1px solid #333333",
+      position: "relative",
+      margin: "auto",
+      top: "0",
+      boxShadow: "-5px 0px 10px rgba(0,0,0,0.25)",
+    });
+    let column_area = create_html_div({
+      position: "absolute",
+      width: this.swidth + "px",
+      height: "200px",
+      background: "lightgrey",
+    });
+    let column_text = create_html_div({
+      position: "relative",
+      width: "100px",
+      height: "40px",
+      margin: "auto",
+      top: "25px",
+    });
+    column_text.id = "text-" + x;
+    for (let y = 0; y < 10; y++) {
+      let col = x + 1;
+      let row = y + 1;
+      let $bead = create_html_div({
+        background:
+          "radial-gradient(ellipse farthest-corner at 25px 10px, rgba(200,0,9,1), rgba(100,0,9,1))",
+        borderRadius: "43%",
+        border: "1px solid rgba(0,0,0,0.25)",
+        width: "32px",
+        height: "16px",
+        position: "relative",
+        left: "-14px",
+        transition: "all 0.5s",
+        boxShadow: "rgba(0,0,0,0.2) -5px 5px 8px",
+        cursor: "pointer",
+      });
+      $bead.id = "bead-" + col + "-" + row;
+      $bead.onclick = () => {
+        this.toggle(col, row);
+        document.getElementById("bc-readout").value = this.get_value();
+        this.refresh();
+      };
+      column_bar.appendChild($bead);
+    }
+    column_div.appendChild(column_area);
+    column_div.appendChild(column_bar);
+    column_div.appendChild(column_text);
+    return column_div;
   }
 }
