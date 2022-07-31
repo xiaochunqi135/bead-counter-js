@@ -42,7 +42,7 @@ class BeadCounter {
     for (let i = 0; i < n; i++) {
       this.texts.push(texts.pop());
     }
-    this.swidth = 600 / n + 10;
+    this.swidth = 600 / n + 5;
     wrapper.style = "margin: auto; width: 700px;";
     let container = create_html_div({
       "column-count": n,
@@ -108,25 +108,28 @@ class BeadCounter {
     for (let i = 0; i < this.columns.length; i++) {
       $max += Math.pow(10, this.columns.length - i);
     }
-    let $sum;
-    if (n > 0) {
-      if (n > $max) {
-        $sum = $max;
+    if (n < $max) {
+      let $sum;
+      if (n < 0) {
+        $sum = 0;
       } else {
         $sum = n;
       }
+      for (let i = 0; i < this.columns.length; i++) {
+        this.columns[i] = states(0);
+        let m = Math.pow(10, this.columns.length - i - 1);
+        if ($sum < m) {
+          continue;
+        } else {
+          let r = $sum % m;
+          this.columns[i] = states(($sum - r) / m);
+          $sum = r;
+        }
+      }
     } else {
-      $sum = 0;
-    }
-    for (let i = 0; i < this.columns.length; i++) {
-      this.columns[i] = states(0);
-      let m = Math.pow(10, this.columns.length - i - 1);
-      if ($sum < m) {
-        continue;
-      } else {
-        let r = $sum % m;
-        this.columns[i] = states(($sum - r) / m);
-        $sum = r;
+      let $sum = $max;
+      for (let i = 0; i < this.columns.length; i++) {
+        this.columns[i] = states(10);
       }
     }
   }
@@ -174,13 +177,13 @@ class BeadCounter {
     });
     let column_area = create_html_div({
       position: "absolute",
-      width: this.swidth + "px",
+      width: this.swidth + 10 + "px",
       height: "200px",
       background: "lightgrey",
     });
     let column_text = create_html_div({
       position: "relative",
-      width: "100px",
+      width: this.swidth - 10 + "px",
       height: "40px",
       margin: "auto",
       top: "25px",
