@@ -108,28 +108,25 @@ class BeadCounter {
     for (let i = 0; i < this.columns.length; i++) {
       $max += Math.pow(10, this.columns.length - i);
     }
-    if (n < $max) {
-      let $sum;
-      if (n < 0) {
-        $sum = 0;
+    let $sum = 0;
+    if (n >= 0 && n <= $max) {
+      $sum = n;
+    }
+    for (let i = 0; i < this.columns.length; i++) {
+      this.columns[i] = states(0);
+      let m = Math.pow(10, this.columns.length - i - 1);
+      if ($sum < m) {
+        continue;
       } else {
-        $sum = n;
-      }
-      for (let i = 0; i < this.columns.length; i++) {
-        this.columns[i] = states(0);
-        let m = Math.pow(10, this.columns.length - i - 1);
-        if ($sum < m) {
-          continue;
+        let r = $sum % m;
+        let q = ($sum - r) / m;
+        if (q > 10) {
+          this.columns[i] = states(10);
+          $sum = m + r;
         } else {
-          let r = $sum % m;
-          this.columns[i] = states(($sum - r) / m);
+          this.columns[i] = states(q);
           $sum = r;
         }
-      }
-    } else {
-      let $sum = $max;
-      for (let i = 0; i < this.columns.length; i++) {
-        this.columns[i] = states(10);
       }
     }
   }
